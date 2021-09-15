@@ -52,6 +52,19 @@ struct Walks {
 	float walk_speed = 2;
 };
 
+struct Flies {
+	float flying_speed = 4;
+};
+
+struct Velocity {
+	float velocity_Y = 0;
+};
+
+struct Position {
+	float position_X = 0;
+};
+
+
 // Setup ECS
 class RegistryECS
 {
@@ -63,6 +76,12 @@ public:
 	ComponentContainer<Name> names;
 	ComponentContainer<Swims> swims;
 	ComponentContainer<Walks> walks;
+	ComponentContainer<Flies> flies; // I used the plural of "fly"
+	// Task 2
+	ComponentContainer<Velocity> velocity;
+	ComponentContainer<Position> position;
+	ComponentContainer<ContainerInterface> AoS;
+	ComponentContainer<ContainerInterface> SoA;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -71,6 +90,10 @@ public:
 		registry_list.push_back(&names);
 		registry_list.push_back(&swims);
 		registry_list.push_back(&walks);
+		registry_list.push_back(&flies); // I used the plural of "fly"
+		registry_list.push_back(&velocity);
+		registry_list.push_back(&position);
+
 	}
 
 	void clear_all_components() {
@@ -149,22 +172,39 @@ int main(int argc, char* argv[])
 	registry.names.emplace(turtle, "Turtle");
 	registry.walks.emplace(turtle);
 	registry.swims.emplace(turtle);
+	registry.velocity.emplace((turtle));
+
+	// Create an American Dipper
+	Entity american_dipper;
+	registry.names.emplace(american_dipper, "American Dipper");
+	registry.walks.emplace(american_dipper);
+	registry.swims.emplace(american_dipper);
+	registry.flies.emplace(american_dipper);
 
 	// WARNING: Common mistake! The following code will not change the animal's name, because we copy fish_name before updating it
 	// One has to work with references or pointers instead
 	Name fish_name = registry.names.get(fish);
 	fish_name.name = "Big " + fish_name.name;
 
+	// Change the name of the "fish" to "Old fish"
+	Name* new_fish_name = &registry.names.get(fish);
+	new_fish_name->name = "Old " + new_fish_name->name;
+
+	// Delete Horse
+	registry.remove_all_components_of(horse);
+
 	// Note, no need to group animals, the tinyECS registry has all the components in a list automatically!
 	// Note, no need to define fish, horse, and turtle classed, they are formed by the equipped components!
 
 	// Print the names and abilities of all the animals
+	// P.S. I changed the grammar format
 	std::cout << "----- ECS debug output -----\n";
 	for (Entity& animal : registry.names.entities) {
         std::cout
             << registry.names.get(animal).name << ' '
-            << (registry.swims.has(animal) ? "can" : "can't") << " swim and "
-            << (registry.walks.has(animal) ? "can" : "can't") << " walk" << std::endl;
+            << (registry.swims.has(animal) ? "can" : "can't") << " swim, "
+			<< (registry.walks.has(animal) ? "can" : "can't") << " walk and "
+            << (registry.flies.has(animal) ? "can" : "can't") << " fly" << std::endl;
     }
 
 	// Inspect the ECS state
