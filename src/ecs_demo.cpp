@@ -122,6 +122,8 @@ public:
 };
 
 RegistryECS registry;
+RegistryECS AoS;
+RegistryECS SoA;
 
 /////////////////////////////////////////
 // Entry point
@@ -161,6 +163,8 @@ int main(int argc, char* argv[])
 	Entity fish;
 	registry.names.insert(fish, Name("Fish"));
 	registry.swims.insert(fish, Swims());
+	registry.velocity.emplace((fish));
+	registry.position.emplace((fish));
 
 	// Create a horse
 	Entity horse;
@@ -173,6 +177,7 @@ int main(int argc, char* argv[])
 	registry.walks.emplace(turtle);
 	registry.swims.emplace(turtle);
 	registry.velocity.emplace((turtle));
+	registry.position.emplace((turtle));
 
 	// Create an American Dipper
 	Entity american_dipper;
@@ -180,6 +185,8 @@ int main(int argc, char* argv[])
 	registry.walks.emplace(american_dipper);
 	registry.swims.emplace(american_dipper);
 	registry.flies.emplace(american_dipper);
+	registry.velocity.emplace((american_dipper));
+	registry.position.emplace((american_dipper));
 
 	// WARNING: Common mistake! The following code will not change the animal's name, because we copy fish_name before updating it
 	// One has to work with references or pointers instead
@@ -206,6 +213,7 @@ int main(int argc, char* argv[])
 			<< (registry.walks.has(animal) ? "can" : "can't") << " walk and "
             << (registry.flies.has(animal) ? "can" : "can't") << " fly" << std::endl;
     }
+
 
 	// Inspect the ECS state
 	registry.list_all_components();
