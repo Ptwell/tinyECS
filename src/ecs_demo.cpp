@@ -64,6 +64,18 @@ struct Position {
 	float position_X = 0;
 };
 
+// SoA's should contain A's , with each entity added to their respective components
+struct Motion {
+	float velocity = 0;
+	float position = 0;
+};
+
+
+// AoS should contain S's, with each entity added to their respective components from the StructOfA
+struct ArrayOfS_Motion_System {
+	ComponentContainer<Velocity> velocity;
+	ComponentContainer<Position> position;
+};
 
 // Setup ECS
 class RegistryECS
@@ -77,11 +89,12 @@ public:
 	ComponentContainer<Swims> swims;
 	ComponentContainer<Walks> walks;
 	ComponentContainer<Flies> flies; // I used the plural of "fly"
+
 	// Task 2
-	ComponentContainer<Velocity> velocity;
-	ComponentContainer<Position> position;
-	ComponentContainer<ContainerInterface> AoS;
-	ComponentContainer<ContainerInterface> SoA;
+	// Array of Structs
+	ComponentContainer<Motion> aos_motion;
+	// Struct of Arrays
+	ArrayOfS_Motion_System soa_motion;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -91,8 +104,9 @@ public:
 		registry_list.push_back(&swims);
 		registry_list.push_back(&walks);
 		registry_list.push_back(&flies); // I used the plural of "fly"
-		registry_list.push_back(&velocity);
-		registry_list.push_back(&position);
+		registry_list.push_back(&aos_motion);
+		registry_list.push_back(&soa_motion.position);
+		registry_list.push_back(&soa_motion.velocity);
 
 	}
 
@@ -122,8 +136,6 @@ public:
 };
 
 RegistryECS registry;
-RegistryECS AoS;
-RegistryECS SoA;
 
 /////////////////////////////////////////
 // Entry point
@@ -163,8 +175,8 @@ int main(int argc, char* argv[])
 	Entity fish;
 	registry.names.insert(fish, Name("Fish"));
 	registry.swims.insert(fish, Swims());
-	registry.velocity.emplace((fish));
-	registry.position.emplace((fish));
+	registry.aos_motion.insert(fish, Motion());
+	
 
 	// Create a horse
 	Entity horse;
@@ -176,8 +188,9 @@ int main(int argc, char* argv[])
 	registry.names.emplace(turtle, "Turtle");
 	registry.walks.emplace(turtle);
 	registry.swims.emplace(turtle);
-	registry.velocity.emplace((turtle));
-	registry.position.emplace((turtle));
+	registry.soa_motion.position.insert(turtle, Position());
+	registry.soa_motion.velocity.insert(turtle, Velocity());
+	
 
 	// Create an American Dipper
 	Entity american_dipper;
@@ -185,8 +198,8 @@ int main(int argc, char* argv[])
 	registry.walks.emplace(american_dipper);
 	registry.swims.emplace(american_dipper);
 	registry.flies.emplace(american_dipper);
-	registry.velocity.emplace((american_dipper));
-	registry.position.emplace((american_dipper));
+	registry.aos_motion.insert(american_dipper, Motion());
+	
 
 	// WARNING: Common mistake! The following code will not change the animal's name, because we copy fish_name before updating it
 	// One has to work with references or pointers instead
@@ -217,7 +230,12 @@ int main(int argc, char* argv[])
 
 	// Inspect the ECS state
 	registry.list_all_components();
+	std::cout << "\n" << registry.names.get(turtle).name << " Components\n";
 	registry.list_all_components_of(turtle);
+	std::cout << "\n" << registry.names.get(fish).name << " Components\n";
+	registry.list_all_components_of(fish);
+	std::cout << "\n" << registry.names.get(american_dipper).name << " Components\n";
+	registry.list_all_components_of(american_dipper);
 
 	// Clearing the ECS system before exit
 	registry.clear_all_components();
